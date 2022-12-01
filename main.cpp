@@ -6,12 +6,15 @@ using namespace std;
 
 int main()
 {
-    int key[2][2] = {
-        {1,2},
-        {3,4}
-    };
     
     string fileMessage;
+    
+    EncryptionDecryption my;
+    my.insertKey();
+    my.printInverse();
+    cout << my.encrypt("Go") << endl;
+    string en = my.encrypt("Go");
+    cout << my.decrypt(en);
 
     // input and output file objects
     ifstream input;
