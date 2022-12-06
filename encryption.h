@@ -1,76 +1,106 @@
-#include <bits/stdc++.h>
-#include <fstream>
+#include "./map.h"
+
 using namespace std;
 
-class encdec {
-    int key[2][2];
- 
-    // File name to be encrypt
-    string file = "message.txt";
-    char c;
- 
-public:
-    void encrypt();
-    void decrypt();
+// C = (K*P)mod26
+// P = (K-inverse*C)mod26
+
+class CipherBlock {
+    
+    // key used to encrypt
+    int key[2][2] = {
+        {5, 7},
+        {3, 4}
+    };
+    
+    // inverse key to decrypt
+    int inverseKey[2][2] = {
+        {22, 7},
+        {3, 21}
+    };
+    
+    public:
+        string encrypt(string);
+        string decrypt(string);
 };
 
-void encdec::encrypt()
-{
-    int key[2][2]{
-        {3, 5},
-        {2, 3}
-    };
-    
-     fstream fin, fout;
- 
-    // Open input file
-    // ios::binary- reading file
-    // character by character
-    fin.open(file, fstream::in);
-    
-    for(int i = 0; i < 2; i++ ){   //This for loop is meant to read the input 2 characters at a time 
-                                    
-while (fin >> noskipws >> c) { //This while loop checks and makes sure there is no whitespace
 
-        int temp = (c + key);
-        fout << (char)temp;
+// Precondition: a string is inputted
+// Postcondition: the string will be encrypted using hill cipher
+string CipherBlock::encrypt(string message) {
+    
+    int length = message.length();
+    int* messageArr = new int[length];
+     
+     // maps each character in the string into an array ... see "./map.h" for mapping configurations
+    for(int i = 0; i < length; i++) {
+        char letter = message.at(i);
+        int num = letToNum[letter];
+        messageArr[i] = num;
     }
     
-    fout.open("encrypted_message.txt", fstream::out);
+    message = ""; // clearing string so we can start building encrypted text to it
     
-    
-    
-    fin.close();
-    fout.close();
-}
-
-
-void encdec::decrypt()
-{
-    int key[2][2]{
-        {23, 5},
-        {2, 23}
-    };
-    
-    fstream fin;
-    fstream fout;
-    fin.open("encrypted_message.txt", fstream::in);
-    
-    fout.open("decrypted_message.txt", fstream::out);
- 
-    for(int i = 0; i < 2; i++){
-        for(int j = 0; j < 2; j++){
-            
-        }
+    for(int i = 0; i < length; i += 2) {
+        // C = (K*P)mod26
+        
+        int num1 = (messageArr[i]*key[0][0] + messageArr[i+1]*key[1][0]);
+        int num2 = (messageArr[i]*key[0][1] + messageArr[i+1]*key[1][1]);
+        
+        num1 = num1%26;
+        num2 = num2%26;
+        
+        char let1 = numToLet[num1];
+        char let2 = numToLet[num2];
+        
+        message = message + let1 + "" + let2;
+        
     }
- 
-    fin.close();
-    fout.close();
+    
+    // memory leak prevention
+    delete[] messageArr;
+    
+    return message;
+
 }
 
+// Note: copy and paste of encrypt function except for the key , which is replaced with an inverse key
+// Precondition: a string is inputted
+// Postcondition: the string will be decrypted using hill cipher
+string CipherBlock::decrypt(string message) {
+    
+    int length = message.length();
+    int* messageArr = new int[length];
+    
+    // maps each character in the string into an array ... see "./map.h" for mapping configurations
+    for(int i = 0; i < length; i++) {
+        char letter = message.at(i);
+        int num = letToNum[letter];
+        messageArr[i] = num;
+    }
+    
+    message = ""; // clearing string so we can start building decrypted text to it
+    
+    for(int i = 0; i < length; i = i + 2) {
+        // C = (K-inverse*P)mod26
+        
+        int num1 = (messageArr[i]*inverseKey[0][0] + messageArr[i+1]*inverseKey[1][0]);
+        int num2 = (messageArr[i]*inverseKey[0][1] + messageArr[i+1]*inverseKey[1][1]);
+        
+        num1 = num1%26;
+        num2 = num2%26;
+        
+        char let1 = numToLet[num1];
+        char let2 = numToLet[num2];
+        
+        message = message + let1 + "" + let2;
+        
+    }
+    
+    // memory leak prevention
+    delete[] messageArr;
+    
+    return message;
+    
+}
 
-//References:
-
-//Used to obtain the string through the use of a while loop
-
-//https://stackoverflow.com/questions/12240010/how-to-read-from-a-text-file-character-by-character-in-c
