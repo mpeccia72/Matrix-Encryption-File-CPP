@@ -1,4 +1,5 @@
 #include "./map.h"
+#include <string>
 
 using namespace std;
 
@@ -30,13 +31,19 @@ class CipherBlock {
 string CipherBlock::encrypt(string message) {
     
     int length = message.length();
-    int* messageArr = new int[length];
+    int* messageArr = new int[length+1]; // we use length + 1 incase we need to throw in a placeholder if the length is odd
+    bool isOddLength = (length%2 == 1);
      
      // maps each character in the string into an array ... see "./map.h" for mapping configurations
     for(int i = 0; i < length; i++) {
         char letter = message.at(i);
         int num = letToNum[letter];
         messageArr[i] = num;
+    }
+    
+    // if the encrypted string has a 0 at the end, it indicates that the original string is odd
+    if(isOddLength) {
+        messageArr[length] = '0';
     }
     
     message = ""; // clearing string so we can start building encrypted text to it
@@ -57,6 +64,10 @@ string CipherBlock::encrypt(string message) {
         
     }
     
+    if(isOddLength) {
+        message = message + '0';
+    }
+    
     // memory leak prevention
     delete[] messageArr;
     
@@ -70,7 +81,10 @@ string CipherBlock::encrypt(string message) {
 string CipherBlock::decrypt(string message) {
     
     int length = message.length();
-    int* messageArr = new int[length];
+    int* messageArr = new int[length]; 
+    bool isOddLength = (message.at(length - 1) == '0'); // checks for '0' at the end to detect if odd
+    
+    if(isOddLength) length--;
     
     // maps each character in the string into an array ... see "./map.h" for mapping configurations
     for(int i = 0; i < length; i++) {
@@ -95,6 +109,11 @@ string CipherBlock::decrypt(string message) {
         
         message = message + let1 + "" + let2;
         
+    }
+    
+    // chops off incorrect element at the end
+    if(isOddLength) {
+        message = message.substr(0, message.length() - 1);
     }
     
     // memory leak prevention
